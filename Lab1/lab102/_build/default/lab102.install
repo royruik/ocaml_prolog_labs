@@ -1,0 +1,8 @@
+lib: [
+  "_build/install/default/lib/lab102/META"
+  "_build/install/default/lib/lab102/dune-package"
+  "_build/install/default/lib/lab102/opam"
+]
+bin: [
+  "_build/install/default/bin/lab102.exe"
+]

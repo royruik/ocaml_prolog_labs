@@ -1,0 +1,4 @@
+(executable
+ (public_name lab104)
+ (name main)
+ (libraries lab104))
