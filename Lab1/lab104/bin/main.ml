@@ -7,4 +7,4 @@ let rec reduce f acc lst =
 
 let () =
   let result = reduce (fun x y -> x + y) 0 [1;2;3;4] in
-  Printf.printf "int = : %d\n" result
+  Printf.printf "int = %d\n" result
