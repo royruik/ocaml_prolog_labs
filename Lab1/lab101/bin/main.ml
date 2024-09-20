@@ -3,7 +3,7 @@ exception Unequal_lengths
 let rec map2 f l1 l2 = 
   match (l1, l2) with
   | ([], []) -> []
-  | (head::tail, head1::tail2) -> (f head head1) :: (map2 f tail tail1)
+  | (head::tail, head1::tail2) -> (f head head1) :: (map2 f tail tail2)
   | _ -> raise Unequal_lengths
 
 
