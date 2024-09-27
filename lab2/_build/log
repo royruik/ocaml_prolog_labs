@@ -1,0 +1,7 @@
+# dune init proj lab2
+# OCAMLPARAM: unset
+# Shared cache: disabled
+# Shared cache location:
+# C:\Users\13570\AppData\Local\Microsoft\Windows\INetCache\dune\db
+# Workspace root: "D:\\CSI3120_labs\\lab2"
+# Auto-detected concurrency: 8
