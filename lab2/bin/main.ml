@@ -1,15 +1,15 @@
-(* Job type definition *)
+(* Step 1*)
 type job = {
   start_time: int;
   duration: int;
   priority: int
 }
 
-(* Helper function to convert time to minutes *)
+(* Step 2 *)
 let time_to_minutes hours minutes =
   hours * 60 + minutes
 
-(* Function to safely read an integer from user input *)
+(* Step 3 *)
 let rec read_int prompt =
   Printf.printf "%s" prompt;
   flush stdout;
@@ -20,9 +20,9 @@ let rec read_int prompt =
       Printf.printf "Invalid input. Please enter a valid integer.\n";
       read_int prompt
 
-(* Function to read a single job from user input *)
-let read_job job_number =
-  Printf.printf "For job %d, please enter the following details:\n" job_number;
+(* Step 3 *)
+let read_job numbers =
+  Printf.printf "For job %d, please enter the following details:\n" numbers;
   let hours = read_int "- Start Time (hours): " in
   let minutes = read_int "- Start Time (minutes): " in
   let duration = read_int "- Duration (minutes): " in
@@ -33,43 +33,43 @@ let read_job job_number =
     priority = priority
   }
 
-(* Function to read jobs from user input *)
-let read_jobs num_jobs =
-  let rec read_job_helper n acc =
-    if n > num_jobs then acc
+(* Step 3 *)
+let read_jobs jobs_num =
+  let rec read_job_aux n acc =
+    if n > jobs_num then acc
     else
       let job = read_job n in
-      read_job_helper (n+1) (job :: acc)
+      read_job_aux (n+1) (job :: acc)
   in
-  List.rev (read_job_helper 1 [])
+  List.rev (read_job_aux 1 [])
 
-(* Function to schedule jobs with no overlaps *)
+(* Step 4  stragety 1*)
 let schedule_jobs jobs =
   List.sort (fun j1 j2 -> compare j1.start_time j2.start_time) jobs
 
-(* Function to schedule jobs by maximum priority *)
+(* Step 4  stragety 2 *)
 let schedule_jobs_max_priority jobs =
   List.sort (fun j1 j2 -> compare j2.priority j1.priority) jobs
 
-(* Function to schedule jobs with minimum idle time *)
+(* Step 4  stragety 3 *)
 let schedule_jobs_min_idle jobs =
   let sorted_jobs = List.sort (fun j1 j2 -> compare j1.start_time j2.start_time) jobs in
   let rec minimize_idle acc = function
     | [] -> List.rev acc
-    | job :: rest ->
+    | head :: tail ->
         let new_start_time = match acc with
-          | [] -> job.start_time
-          | prev :: _ -> max job.start_time (prev.start_time + prev.duration)
+          | [] -> head.start_time
+          | prev :: _ -> max head.start_time (prev.start_time + prev.duration)
         in
-        let new_job = {job with start_time = new_start_time} in
-        minimize_idle (new_job :: acc) rest
+        let new_job = {head with start_time = new_start_time} in
+        minimize_idle (new_job :: acc) tail
   in
   minimize_idle [] sorted_jobs
 
-(* Function to print scheduled jobs *)
+(* Step 5 *)
 let print_schedule strategy jobs =
   let sorted_jobs = 
-    if strategy = 2 then  (* Max Priority *)
+    if strategy = 2 then 
       List.sort (fun j1 j2 -> compare j2.priority j1.priority) jobs
     else
       jobs
@@ -79,7 +79,7 @@ let print_schedule strategy jobs =
       job.start_time job.duration job.priority
   ) sorted_jobs
 
-(* Main function *)
+(* Step 6 *)
 let main () =
   let num_jobs = read_int "How many jobs do you want to schedule? " in
   let jobs = read_jobs num_jobs in
@@ -97,7 +97,7 @@ let main () =
         Printf.printf "Scheduled Jobs (Minimize Idle Time):\n";
         schedule_jobs_min_idle jobs
     | _ -> 
-        Printf.printf "Invalid strategy chosen. Using No Overlaps by default.\n";
+        Printf.printf "Invalid strategy chosen.\n";
         schedule_jobs jobs
   in
   
