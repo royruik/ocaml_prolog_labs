@@ -62,7 +62,7 @@ let rec assign_locations locations vehicles =
 let distance loc1 loc2 =
   sqrt ((loc2.x -. loc1.x) ** 2. +. (loc2.y -. loc1.y) ** 2.)
 
-let calculate_route_distance route =
+let calculate_route_distance route return_to_start =
   let rec aux dist prev_location = function
     | [] -> dist
     | loc :: rest ->
@@ -71,14 +71,20 @@ let calculate_route_distance route =
   in
   match route with
   | [] -> 0.0
-  | start :: rest -> aux 0.0 start rest
+  | start :: rest ->
+      let total_dist = aux 0.0 start rest in
+      if return_to_start then
+        total_dist +. distance (List.hd route) start
+      else
+        total_dist
 
 (* Step 7: Display the Results *)
-let display_results assignments =
+let display_results assignments return_to_start =
   List.iter (fun (vehicle_id, route) ->
     Printf.printf "Vehicle %d route: %s\n" vehicle_id
       (String.concat " -> " (List.map (fun loc -> loc.name) route));
-    Printf.printf "Total distance: %.2f km\n\n" (calculate_route_distance route)
+    Printf.printf "Total distance: %.2f km\n\n"
+      (calculate_route_distance route return_to_start)
   ) assignments
 
 (* Main Function *)
@@ -92,9 +98,12 @@ let main () =
   let num_vehicles = int_of_string (read_line ()) in
   let vehicles = read_vehicles num_vehicles 1 in
 
+  print_endline "Should the vehicles return to the starting location after deliveries? (yes/no):";
+  let return_to_start = read_line () = "yes" in
+
   let assignments = assign_locations sorted_locations vehicles in
 
-  display_results assignments
+  display_results assignments return_to_start
 
 (* Execute the main function *)
 let () = main ()
