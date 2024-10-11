@@ -13,15 +13,34 @@ type vehicle = {
 }
 
 (* Step 3: Get User Input for Locations and Vehicles *)
+let read_int_with_prompt prompt =
+  Printf.printf "%s" prompt;
+  flush stdout;
+  let rec read_valid_int () =
+    try
+      int_of_string (read_line ())
+    with
+    | Failure _ ->
+        print_endline "Invalid input. Please enter a valid integer.";
+        read_valid_int ()
+  in
+  read_valid_int ()
+
+let read_float_with_prompt prompt =
+  Printf.printf "%s" prompt;
+  flush stdout;
+  float_of_string (read_line ())
+
+let read_string_with_prompt prompt =
+  Printf.printf "%s" prompt;
+  flush stdout;
+  read_line ()
+
 let read_location () =
-  print_endline "Enter location name:";
-  let name = read_line () in
-  print_endline "Enter X coordinate:";
-  let x = float_of_string (read_line ()) in
-  print_endline "Enter Y coordinate:";
-  let y = float_of_string (read_line ()) in
-  print_endline "Enter priority:";
-  let priority = int_of_string (read_line ()) in
+  let name = read_string_with_prompt "Location name: " in
+  let x = read_float_with_prompt "X coordinate: " in
+  let y = read_float_with_prompt "Y coordinate: " in
+  let priority = read_int_with_prompt "Priority: " in
   { name; x; y; priority }
 
 let rec read_locations n =
@@ -29,8 +48,19 @@ let rec read_locations n =
   else read_location () :: read_locations (n - 1)
 
 let read_vehicle id =
-  print_endline ("Enter capacity for vehicle " ^ string_of_int id ^ ":");
-  let capacity = int_of_string (read_line ()) in
+  let capacity =
+    let rec read_valid_capacity () =
+      Printf.printf "Enter capacity for vehicle %d: " id;
+      flush stdout;
+      try
+        int_of_string (read_line ())
+      with
+      | Failure _ ->
+          print_endline "Invalid input. Please enter a valid integer.";
+          read_valid_capacity ()
+    in
+    read_valid_capacity ()
+  in
   { id; capacity }
 
 let rec read_vehicles n id =
@@ -62,7 +92,7 @@ let rec assign_locations locations vehicles =
 let distance loc1 loc2 =
   sqrt ((loc2.x -. loc1.x) ** 2. +. (loc2.y -. loc1.y) ** 2.)
 
-let calculate_route_distance route return_to_start =
+let calculate_route_distance route =
   let rec aux dist prev_location = function
     | [] -> dist
     | loc :: rest ->
@@ -71,39 +101,29 @@ let calculate_route_distance route return_to_start =
   in
   match route with
   | [] -> 0.0
-  | start :: rest ->
-      let total_dist = aux 0.0 start rest in
-      if return_to_start then
-        total_dist +. distance (List.hd route) start
-      else
-        total_dist
+  | start :: rest -> aux 0.0 start rest
 
 (* Step 7: Display the Results *)
-let display_results assignments return_to_start =
+let display_results assignments =
   List.iter (fun (vehicle_id, route) ->
     Printf.printf "Vehicle %d route: %s\n" vehicle_id
       (String.concat " -> " (List.map (fun loc -> loc.name) route));
     Printf.printf "Total distance: %.2f km\n\n"
-      (calculate_route_distance route return_to_start)
+      (calculate_route_distance route)
   ) assignments
 
 (* Main Function *)
 let main () =
-  print_endline "Enter the number of delivery locations:";
-  let num_locations = int_of_string (read_line ()) in
+  let num_locations = read_int_with_prompt "Enter the number of delivery locations: " in
   let locations = read_locations num_locations in
   let sorted_locations = sort_by_priority locations in
 
-  print_endline "Enter the number of vehicles:";
-  let num_vehicles = int_of_string (read_line ()) in
+  let num_vehicles = read_int_with_prompt "Enter the number of vehicles: " in
   let vehicles = read_vehicles num_vehicles 1 in
-
-  print_endline "Should the vehicles return to the starting location after deliveries? (yes/no):";
-  let return_to_start = read_line () = "yes" in
 
   let assignments = assign_locations sorted_locations vehicles in
 
-  display_results assignments return_to_start
+  display_results assignments
 
 (* Execute the main function *)
 let () = main ()
