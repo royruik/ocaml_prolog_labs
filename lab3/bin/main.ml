@@ -47,6 +47,13 @@ let rec read_locations n =
   if n <= 0 then []
   else read_location () :: read_locations (n - 1)
 
+(* Step 4: Define the default home location *)
+let home = { name = "Home"; x = 0.0; y = 0.0; priority = 0 }
+
+let get_other_locations () =
+  let num_locations = read_int_with_prompt "Enter the number of delivery locations: " in
+  read_locations num_locations
+
 let read_vehicle id =
   let capacity =
     let rec read_valid_capacity () =
@@ -65,13 +72,15 @@ let read_vehicle id =
 
 let rec read_vehicles n id =
   if id > n then []
-  else read_vehicle id :: read_vehicles n (id + 1)
+  else
+    let vehicle = read_vehicle id in
+    vehicle :: read_vehicles n (id + 1)
 
-(* Step 4: Sort Locations by Priority *)
+(* Step 5: Sort Locations by Priority *)
 let sort_by_priority locations =
   List.sort (fun l1 l2 -> compare l2.priority l1.priority) locations
 
-(* Step 5: Assign Locations to Vehicles *)
+(* Step 6: Assign Locations to Vehicles *)
 let rec assign_locations locations vehicles =
   let rec assign_to_vehicle locations vehicle assigned =
     match locations with
@@ -88,11 +97,11 @@ let rec assign_locations locations vehicles =
       let (assigned, remaining) = assign_to_vehicle locations v [] in
       (v.id, List.rev assigned) :: assign_locations remaining vs
 
-(* Step 6: Optimize Routes for Each Vehicle *)
+(* Step 7: Optimize Routes for Each Vehicle *)
 let distance loc1 loc2 =
   sqrt ((loc2.x -. loc1.x) ** 2. +. (loc2.y -. loc1.y) ** 2.)
 
-let calculate_route_distance route =
+let calculate_route_distance route home =
   let rec aux dist prev_location = function
     | [] -> dist
     | loc :: rest ->
@@ -101,21 +110,23 @@ let calculate_route_distance route =
   in
   match route with
   | [] -> 0.0
-  | start :: rest -> aux 0.0 start rest
+  | start :: rest ->
+      let total_dist = aux 0.0 start rest in
+      total_dist +. distance (List.hd (List.rev route)) home
 
-(* Step 7: Display the Results *)
-let display_results assignments =
+(* Step 8: Display the Results *)
+let display_results assignments home =
   List.iter (fun (vehicle_id, route) ->
+    let full_route = route @ [home] in
     Printf.printf "Vehicle %d route: %s\n" vehicle_id
-      (String.concat " -> " (List.map (fun loc -> loc.name) route));
+      (String.concat " -> " (List.map (fun loc -> loc.name) full_route));
     Printf.printf "Total distance: %.2f km\n\n"
-      (calculate_route_distance route)
+      (calculate_route_distance full_route home)
   ) assignments
 
 (* Main Function *)
 let main () =
-  let num_locations = read_int_with_prompt "Enter the number of delivery locations: " in
-  let locations = read_locations num_locations in
+  let locations = get_other_locations () in
   let sorted_locations = sort_by_priority locations in
 
   let num_vehicles = read_int_with_prompt "Enter the number of vehicles: " in
@@ -123,7 +134,7 @@ let main () =
 
   let assignments = assign_locations sorted_locations vehicles in
 
-  display_results assignments
+  display_results assignments home
 
 (* Execute the main function *)
 let () = main ()
